@@ -38,44 +38,51 @@ class WebController(private val usersRepo: UserRepository) : ErrorController {
         return "login"
     }
 
-
-    @PostMapping("/user/login.html")
+    @PostMapping("/login")
     fun userLogin(
-        @RequestParam("email") email: String, @RequestParam("password") password: String
-    ): ResponseEntity<Any> {
+        @RequestParam("email") email: String,
+        @RequestParam("password") password: String,
+        model: Model
+    ): String? {
+
+        if (email.isEmpty() && password.isEmpty()) {
+            model.addAttribute("message", "Email and password can not be empty");
+            return "login"
+        }
+
+        if (email.isEmpty()) {
+            model.addAttribute("message", "Email can not be empty");
+            return "login"
+        }
+
+        if (password.isEmpty()) {
+            model.addAttribute("message", "Password can not be empty");
+            return "login"
+        }
 
         //check if entered email available or not
         if (usersRepo.existsByEmail(email)) {
-            return try {
+            try {
 
                 val userDetails = usersRepo.findUser(email)
                 val decryptedPassword = decryptKey(userDetails.password)
 
                 if (password == decryptedPassword) {
                     userDetails.password = ""
-                    ResponseEntity(
-                        RegisterSuccess(message = "Logged in successfully", user = userDetails),
-                        HttpStatus.OK
-                    )
+
+                    model.addAttribute("name", userDetails.name)
+                    return "greetings"
                 } else {
-                    ResponseEntity(
-                        NoDataFound(message = "Invalid credentials entered, Try again"),
-                        HttpStatus.NOT_FOUND
-                    )
+                    model.addAttribute("message", "Invalid credentials entered, Try again");
                 }
 
             } catch (e: Exception) {
-                //User not available/ invalid credentials
-                ResponseEntity(
-                    NoDataFound(message = "Invalid credentials entered, Try again"),
-                    HttpStatus.NOT_FOUND
-                )
+                model.addAttribute("message", "Invalid credentials entered, Try again");
             }
+            return "login"
         } else {
-            return ResponseEntity(
-                NoDataFound(message = "Email not available in our database, Try again"),
-                HttpStatus.NOT_FOUND
-            )
+            model.addAttribute("message", "Email not available in our database, Try again");
+            return "login"
         }
     }
 

@@ -6,7 +6,6 @@
     <!--<script type="text/javascript" src="js/test.js"></script>-->
     <script src="js/test.js"></script>
 
-
 </head>
 <body>
 <div class="container" id="container">
@@ -26,8 +25,7 @@
         </form>
     </div>
     <div class="form-container sign-in-container">
-        <form action="#">
-       <!-- <form th:action="@{/user/login.html}" method="post">-->
+        <form name="loginForm" th:action="@{/login}" method="post">
             <h1>Sign in</h1>
             <div class="social-container">
                 <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
@@ -35,10 +33,13 @@
                 <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
             </div>
             <span>or use your account</span>
-            <input type="email" placeholder="Email"/>
-            <input type="password" placeholder="Password"/>
+            <p th:if="${value}" class="error">
+                [[${message}]]
+            </p>
+            <input type="email" id="email" name="email" placeholder="Email"/>
+            <input type="password" id="password" name="password" placeholder="Password"/>
             <a href="#">Forgot your password?</a>
-            <button type="submit">Sign In</button>
+            <button onsubmit="return validateForm()" type="submit">Sign In</button>
         </form>
     </div>
     <div class="overlay-container">
@@ -46,12 +47,12 @@
             <div class="overlay-panel overlay-left">
                 <h1>Welcome Back!</h1>
                 <p>To keep connected with us please login with your personal info</p>
-                <button class="ghost" id="signIn">Sign In</button>
+                <button class="ghost" onclick="signInClick()" id="signIn">Sign In</button>
             </div>
             <div class="overlay-panel overlay-right">
                 <h1>Hello, Friend!</h1>
                 <p>Enter your personal details and start journey with us</p>
-                <button class="ghost" onclick = "fun()" id="signUp">Sign Up</button>
+                <button class="ghost" onclick="signUpClick()" id="signUp">Sign Up</button>
             </div>
         </div>
     </div>
