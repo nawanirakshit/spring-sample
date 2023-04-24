@@ -3,60 +3,59 @@ package rakshit.sample.controller.web
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor
 import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig
 import org.springframework.boot.web.servlet.error.ErrorController
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
-import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import rakshit.sample.config.JasyptConfig
-import rakshit.sample.model.NoDataFound
-import rakshit.sample.model.RegisterSuccess
+import rakshit.sample.model.Users
 import rakshit.sample.repository.UserRepository
-import javax.validation.Valid
+import javax.servlet.http.HttpSession
 
 @Controller
 class WebController(private val usersRepo: UserRepository) : ErrorController {
 
-    @GetMapping("/home")
-    fun homePage(model: Model): String? {
-        model.addAttribute("appName", "MY APPPPPPPPPPPPPPPPPP")
-        return "home"
-    }
-
     @GetMapping("/greeting")
     fun greeting(
         @RequestParam(name = "name", required = false, defaultValue = "World") name: String?,
-        model: Model
+        model: Model,
+        session: HttpSession
     ): String? {
-        model.addAttribute("name", name)
+
+        val user = session.getAttribute("USER_DETAILS") as Users
+
+        println("NAME >>>>>>>>> ${user.name}")
+
+        model.addAttribute("name", user.name)
         return "greetings"
     }
 
     @GetMapping("/login")
-    fun loginPage(): String? {
-        return "login"
+    fun loginPage(session: HttpSession): String? {
+        return if (session.getAttribute("USER_DETAILS") != null) {
+            "greetings"
+        } else "login"
     }
 
     @PostMapping("/login")
     fun userLogin(
         @RequestParam("email") email: String,
         @RequestParam("password") password: String,
-        model: Model
+        model: Model,
+        session: HttpSession
     ): String? {
 
         if (email.isEmpty() && password.isEmpty()) {
-            model.addAttribute("message", "Email and password can not be empty");
+            model.addAttribute("loginError", "Email and password can not be empty");
             return "login"
         }
 
         if (email.isEmpty()) {
-            model.addAttribute("message", "Email can not be empty");
+            model.addAttribute("loginError", "Email can not be empty");
             return "login"
         }
 
         if (password.isEmpty()) {
-            model.addAttribute("message", "Password can not be empty");
+            model.addAttribute("loginError", "Password can not be empty");
             return "login"
         }
 
@@ -70,18 +69,20 @@ class WebController(private val usersRepo: UserRepository) : ErrorController {
                 if (password == decryptedPassword) {
                     userDetails.password = ""
 
+                    session.setAttribute("USER_DETAILS", userDetails)
+
                     model.addAttribute("name", userDetails.name)
                     return "greetings"
                 } else {
-                    model.addAttribute("message", "Invalid credentials entered, Try again");
+                    model.addAttribute("loginError", "Invalid credentials entered, Try again");
                 }
 
             } catch (e: Exception) {
-                model.addAttribute("message", "Invalid credentials entered, Try again");
+                model.addAttribute("loginError", "Invalid credentials entered, Try again");
             }
             return "login"
         } else {
-            model.addAttribute("message", "Email not available in our database, Try again");
+            model.addAttribute("loginError", "Email not available in our database, Try again");
             return "login"
         }
     }
